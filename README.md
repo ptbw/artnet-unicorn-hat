@@ -227,17 +227,25 @@ sudo pip install serial mote
 
 * Then get artnet-server and related files onto the OSMC machine
 * One way to do this is ...
+  ```
   wget ...
   unzip ...
   cp ...
+  ```
  * Then set-up the Hyperion configuration file
+ ```
  cp ... /etc/hyperion
+ ```
  * Then install the modules required by artnet-server
+ ```
  sudo pip install twisted
+ ```
  * Next step is to set artnet-server.py to start on boot
+ ```
  sudo cp ...artnet-server.service /lib/systemd/system/artnet-server.service
  sudo systemctl enable artnet-server
  sudo systemctl start artnet-server
+ ```
 
 * Then shutdown your Raspi, plug in the Mote stick controller, power on Raspi
 
