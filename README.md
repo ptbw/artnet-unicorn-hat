@@ -226,15 +226,17 @@ Use HyperCon to install Hyperion on Raspberry Pi
 sudo pip install serial mote
 
 * Then get artnet-server and related files onto the OSMC machine
-* One way to do this is ...
+* One way to do this is to login via SSH to your OSMC system
+  Assuming that you are now in /home/osmc directory ...
   ```
-  wget ...
-  unzip ...
-  cp ...
+  sudo apt-get install wget unzip
+  wget https://github.com/PaulWebster/artnet-unicorn-hat/archive/mote.zip
+  unzip mote.zip
+  cp artnet-unicorn-hat-mote/artnet-server.py .
   ```
- * Then set-up the Hyperion configuration file
+ * Then set-up the Hyperion configuration file (must have installed Hyperion first)
  ```
- cp ... /etc/hyperion
+ cp artnet-unicorn-hat-mote/hyperion.config.json /etc/hyperion
  ```
  * Then install the modules required by artnet-server
  ```
@@ -242,7 +244,7 @@ sudo pip install serial mote
  ```
  * Next step is to set artnet-server.py to start on boot
  ```
- sudo cp ...artnet-server.service /lib/systemd/system/artnet-server.service
+ sudo cp artnet-unicorn-hat-mote/artnet-server.service /lib/systemd/system/artnet-server.service
  sudo systemctl enable artnet-server
  sudo systemctl start artnet-server
  ```
