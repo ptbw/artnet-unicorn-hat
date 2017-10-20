@@ -1,24 +1,41 @@
 # artnet-unicorn-hat
-Control Pimoroni Unicorn Hat LEDs using the Art-Net protocol.
+Control Pimoroni Unicorn Hat and Pimoroni Mote LEDs
+using the Art-Net or OPC protocol.
 
-Art-Net is a protocol for controlling lights over a network. Glediator
-controls LEDs on one or more Art-Net nodes. An Art-Net node drives the
-LEDs. In this example, Glediator runs on a laptop and controls a Pi with
-a Unicorn Hat. The Pi is the Art-Net node. A Pimoroni Unicorn Hat is
-an add-on board for a Raspberry Pi+/2 with an 8 by 8 grid of ws281x
-LEDs.
+Art-Net and Open Pixel Control (OPC aka FadeCandy) are protocols for
+controlling lights over a network.
+Glediator is an example of one program that controls LEDs on one or
+more Art-Net nodes. An Art-Net node drives the LEDs.
+In this example, Glediator runs on a laptop and controls a Pi with LEDs.
+The Pi is the Art-Net node.
+Hyperion is an ambient light controller for Kodi. It detects the colors
+that are being presented on the Kodi screen and sends information about 
+the colour changes on the boarder of the screen using a variety of
+mechanisms including OPC (FadeCandy)
+
+A Pimoroni Unicorn Hat is an add-on board for a Raspberry Pi+/2 with an 
+8 by 8 grid of ws281x LEDs.
+A Pimoroni Mote is a USB attached device with up to 4 sets of 16 LEDs attached
 
 http://www.solderlab.de/index.php/software/glediator
 
 https://en.wikipedia.org/wiki/Art-Net
 
+https://hyperion-project.org/
+
+http://openpixelcontrol.org/
+
 ## Preliminary
 
-The Unicorn Hat must be installed and working on the Pi with the
+The Unicorn Hat or Mote must be installed and working on the Pi with the
 Pimoroni supplied Python software. Make sure this works before graduating
 to Art-Net.
 
 http://learn.pimoroni.com/tutorial/unicorn-hat/getting-started-with-unicorn-hat
+https://learn.pimoroni.com/tutorial/sandyj/getting-started-with-mote
+
+Note: If you are trying to use Mote on a Raspberry Pi running OSMC then there
+are special instructions mentioned below
 
 ## Install libraries on the Pi
 
@@ -26,15 +43,27 @@ Do this only once to install the Python twisted libraries.
 
 ```
 sudo apt-get install python-twisted
+or
+sudo pip install twisted
+```
+For Pimoroni Mote you also need to install some additional libraries which
+you can do using the Pimoroni install script.
+(at the time of writing this (19 October 2017) the Pimoroni install script
+does not work on OSMC so use the command below)
+```
+sudo pip install serial mote
 ```
 
+
 ## Run Art-Net server on the Pi
-The following command runs the Art-Net server turning the Pi into an Art-Net node. 
+The following command runs the Art-Net server turning the Pi
+into an Art-Net node. 
 Many programs can send LED values to an Art-Net node. Glediator is one such
 program.
 
 ```
 sudo python artnet-server.py
+note if using Pimoroni Mote then you do not need to use "sudo" at the start
 ```
 
 ## Glediator
@@ -125,16 +154,49 @@ java -jar PixelController.jar
 
 ## Open Pixel Control Protocol
 
-Add support for Open Pixel Control protocol on TCP port 7890. See
+Support included for Open Pixel Control protocol on TCP port 7890. See
 https://github.com/zestyping/openpixelcontrol for the OPC protocol
 specification.
 
-Do not use OPC and Art-Net at the same time. This will just produce
-garbage on the LEDs.
+Do not use OPC and Art-Net at the same time.
+This will just produce garbage on the LEDs.
+Near the top of the artnet-server.py file there are some settings that you
+can adjust.
+
+In this version the defaults are for Pimoroni Mote being driven by
+OPC (FadeCandy) for Hyperion/Kodi.
+If you want to change this then edit the file and change to what you want.
+Note - do not enable PimUnicorn and PimMote at the same time.
+The lines to look for in artnet-server.py are:
+```
+PimUnicorn = False
+PimMote = True
+
+SupportArtNet = False
+```
+
+
 
 ### Example OPC programs to drive the LEDs
 
-Many open pixel control and Fade Candy examples work. Be sure to
+Hyperion (for Kodi)
+A sample Hyperion configuration file is included in the repository.
+This one assumes that the LEDs are arranged around the screen
+except for the bottom.
+Left bottom (as you look at front of screen) is pixel 1, top left is 17 (stick 2),
+top right is 48 (far end of stick 3) and bottom right is 64 (far end of stick 4).
+If you want a different configuration then you can generate your own using HyperCon
+and then push the hyperion.config.json file using HyperCon to the Hyperion system.
+Note - the json file must have that name unless you configure Hyperion to be
+started with config file name in command line.
+On OSMC (and possibly other Linux distributions) the config file needs to be in the
+directory /etc/hyperion/
+
+Note: The LEDs will not turn off when you turn off the screen.
+However, you will probably find that they do turn off when the Kodi screensaver kicks
+in when on home page (unless you have a screen saver with bright edges!)
+
+Many Open Pixel Control and Fade Candy examples work. Be sure to
 modify the examples with the Raspi IP address.
 
 The following examples from https://github.com/zestyping/openpixelcontrol work.
@@ -151,4 +213,31 @@ to create interactive LED displays. Edit the PDE file to add the Raspi IP addres
 
     examples/processing/
         grid8x8_dot, grid8x8_noise_sample, grid8x8_orbits, grid8x8_wavefronts
+
+## OSMC on Raspberry Pi Quick Start
+Brief instructions for getting this to work on OSMC on Raspberry Pi.
+Only basics given here - so much knowledge or willingness to search is assumed.
+
+Install HyperCon on desktop/laptop machine
+Use HyperCon to install Hyperion on Raspberry Pi
+ If you get GNUTLS errors when it tries to fetch Hyperion just pause and try again
+ Do not worry about installation errors referring to X11
+* Next step is to install the Pimoroni Mote Python files
+sudo pip install serial mote
+
+* Then get artnet-server and related files onto the OSMC machine
+* One way to do this is ...
+  wget ...
+  unzip ...
+  cp ...
+ * Then set-up the Hyperion configuration file
+ cp ... /etc/hyperion
+ * Then install the modules required by artnet-server
+ sudo pip install twisted
+ * Next step is to set artnet-server.py to start on boot
+ sudo cp ...artnet-server.service /lib/systemd/system/artnet-server.service
+ sudo systemctl enable artnet-server
+ sudo systemctl start artnet-server
+
+* Then shutdown your Raspi, plug in the Mote stick controller, power on Raspi
 
