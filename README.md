@@ -40,16 +40,6 @@ are special instructions mentioned below
 ## Install libraries on the Pi
 
 Do this only once to install the Python twisted libraries.
-The installation of Twisted performs some compilations locally, but OSMC does
-not come with the needed tools. So install them first:
-```
-sudo apt-get update
-sudo apt-get install build-essential
-export ARCH=arm
-export CROSS_COMPILE=/usr/bin
-sudo apt-get install python-dev
-```
-then you can install Twisted
 ```
 sudo pip install twisted
 ```
@@ -246,6 +236,16 @@ sudo pip install serial mote
  cp artnet-unicorn-hat-mote/hyperion.config.json /etc/hyperion
  ```
  * Then install the modules required by artnet-server
+ The installation of Twisted performs some compilations locally, but OSMC does
+ not come with the needed tools. So install them first:
+ ```
+ sudo apt-get update
+ sudo apt-get install build-essential
+ export ARCH=arm
+ export CROSS_COMPILE=/usr/bin
+ sudo apt-get install python-dev
+ ```
+ then you can install Twisted
  ```
  sudo pip install twisted
  ```
