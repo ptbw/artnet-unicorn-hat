@@ -40,10 +40,17 @@ are special instructions mentioned below
 ## Install libraries on the Pi
 
 Do this only once to install the Python twisted libraries.
-
+The installation of Twisted performs some compilations locally, but OSMC does
+not come with the needed tools. So install them first:
 ```
-sudo apt-get install python-twisted
-or
+sudo apt-get update
+sudo apt-get install build-essential
+export ARCH=arm
+export CROSS_COMPILE=/usr/bin
+sudo apt-get install python-dev
+```
+then you can install Twisted
+```
 sudo pip install twisted
 ```
 For Pimoroni Mote you also need to install some additional libraries which
