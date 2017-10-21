@@ -220,8 +220,9 @@ Use HyperCon to install Hyperion on Raspberry Pi
  If you get GNUTLS errors when it tries to fetch Hyperion just pause and try again
  Do not worry about installation errors referring to X11
 * Next step is to install the Pimoroni Mote Python files
+```
 sudo pip install serial mote
-
+```
 * Then get artnet-server and related files onto the OSMC machine
 * One way to do this is to login via SSH to your OSMC system
   Assuming that you are now in /home/osmc directory ...
