@@ -8,6 +8,7 @@ from __future__ import print_function
 PimUnicorn = False
 PimMote = True
 
+SystemExclusive = False
 SupportArtNet = False
 
 if PimUnicorn:
@@ -121,6 +122,8 @@ class OPC(protocol.Protocol):
                 OPC.parseState += 1
             elif (OPC.parseState == 1): # get OPC.pktCommand
                 OPC.pktCommand = rawbytes[i]
+                if (OPC.pktCommand == 255): # exclusive on
+                    SystemExclusive = True
                 i += 1
                 OPC.parseState += 1
             elif (OPC.parseState == 2): # get OPC.pktLength.highbyte
@@ -141,6 +144,7 @@ class OPC(protocol.Protocol):
                     OPC.parseState = 0
             elif (OPC.parseState == 4):
                 copyBytes = min(OPC.pixelLimit - OPC.pixelCount, len(rawbytes) - i)
+                if( SystemExclusive )
                 if (copyBytes > 0):
                     OPC.pixelCount += copyBytes
                     #print("OPC.pixelLimit %d OPC.pixelCount %d copyBytes %d" % \
