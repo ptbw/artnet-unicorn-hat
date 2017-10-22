@@ -8,7 +8,6 @@ from __future__ import print_function
 PimUnicorn = False
 PimMote = True
 
-SystemExclusive = False
 SupportArtNet = False
 
 if PimUnicorn:
@@ -25,6 +24,10 @@ if sys.version_info[0] < 3:
     oldPython = True
 else:
     oldPython = False
+
+x_max = 16
+y_max = 2
+SystemExclusive = False
 
 if PimUnicorn:
     # 8x8 grid
@@ -111,7 +114,7 @@ class OPC(protocol.Protocol):
         else:
             rawbytes = data ## "map" changed in Python3 - in theory list(map()) should have worked but did not
 
-        #print("len(rawbytes) %d" % len(rawbytes))
+        print("len(rawbytes) %d" % len(rawbytes))
         #print(rawbytes)
         i = 0
         while (i < len(rawbytes)):
@@ -136,53 +139,88 @@ class OPC(protocol.Protocol):
                 OPC.parseState += 1
                 OPC.pixelCount = 0
                 OPC.pixelLimit = min(3*OPC.MAX_LEDS, OPC.pktLength)
-                #print("OPC.pktChannel %d OPC.pktCommand %d OPC.pktLength %d OPC.pixelLimit %d" % \
-                #    (OPC.pktChannel, OPC.pktCommand, OPC.pktLength, OPC.pixelLimit))
+                print("OPC.pktChannel %d OPC.pktCommand %d OPC.pktLength %d OPC.pixelLimit %d" % \
+                    (OPC.pktChannel, OPC.pktCommand, OPC.pktLength, OPC.pixelLimit))
+                    
                 if (OPC.pktLength > 3*OPC.MAX_LEDS):
                     print("Received pixel packet exeeds size of buffer! Data discarded.")
+                    OPC.parseState = 0
+                     
                 if (OPC.pixelLimit == 0):
                     OPC.parseState = 0
             elif (OPC.parseState == 4):
-                copyBytes = min(OPC.pixelLimit - OPC.pixelCount, len(rawbytes) - i)
-                if( SystemExclusive )
-                if (copyBytes > 0):
-                    OPC.pixelCount += copyBytes
-                    #print("OPC.pixelLimit %d OPC.pixelCount %d copyBytes %d" % \
-                    #        (OPC.pixelLimit, OPC.pixelCount, copyBytes))
-                    if ((OPC.pktCommand == 0) and (OPC.pktChannel <= 1)):
-                        x = 1
-                        y = 1
-                        iLimit = i + copyBytes
-                        while ((i < iLimit) and (y <= y_max)):
-                            #print("i %d" % (i))
-                            r = rawbytes[i]
-                            i += 1
-                            g = rawbytes[i]
-                            i += 1
-                            b = rawbytes[i]
-                            i += 1
-                            #print("x %d y %d r %d g %d b %d" % (x,y,r,g,b))
-                            if PimUnicorn:
-                                unicorn.set_pixel(x-1, y-1, r, g, b)
-                            if PimMote:
-                                mote.set_pixel(y, x-1, r, g, b)
-
-                            x += 1
-                            if (x > x_max):
-                                x = 1
-                                y += 1
-
-                        if (OPC.pixelCount >= OPC.pixelLimit):
-                            if PimUnicorn:
-                                unicorn.show()
-                            if PimMote:
-                                mote.show()
-                    else:
-                        i += copyBytes
-                    if (OPC.pixelCount == OPC.pktLength):
-                        OPC.parseState = 0
-                    else:
-                        OPC.parseState += 1
+                copyBytes = min(OPC.pixelLimit - OPC.pixelCount, len(rawbytes) - i)     
+                print("OPC.pixelLimit %d OPC.pixelCount %d Length %d" % \
+                    (OPC.pixelLimit,OPC.pixelCount, len(rawbytes) - i))                     
+                if (SystemExclusive == True):	# Enable System Exclusive  mode and set all LED's to the same colour
+                    print("System Exclusive Recieved")													
+                    r = rawbytes[i]
+                    g = rawbytes[i+1]
+                    b = rawbytes[i+2] 
+                    x = 1
+                    y = 1							
+                    while (y <= y_max):                        
+                        #print("x %d y %d r %d g %d b %d" % (x,y,r,g,b))
+                        if PimUnicorn:
+                            unicorn.set_pixel(x-1, y-1, r, g, b)
+                        if PimMote:
+                            mote.set_pixel(y, x-1, r, g, b)
+                
+                        x += 1
+                        if (x > x_max):
+                            x = 1
+                            y += 1
+                
+                        if PimUnicorn:
+                            unicorn.show()
+                        if PimMote:
+                            mote.show()
+                
+                    if ((r == 0 ) and (g == 0) and (b == 0 )):  # If leds are switched off then allow normal operation.
+                        SystemExclusive = False   
+                        
+                    OPC.parseState = 0
+                else:
+                    if (copyBytes > 0):
+                        OPC.pixelCount += copyBytes
+                        #print("OPC.pixelLimit %d OPC.pixelCount %d copyBytes %d" % \
+                        #        (OPC.pixelLimit, OPC.pixelCount, copyBytes))
+                        if ((OPC.pktCommand == 0) and (OPC.pktChannel <= 1)):
+                            x = 1
+                            y = 1
+                            iLimit = i + copyBytes
+                            while ((i < iLimit) and (y <= y_max)):
+                                #print("i %d" % (i))
+                                r = rawbytes[i]
+                                i += 1
+                                g = rawbytes[i]
+                                i += 1
+                                b = rawbytes[i]
+                                i += 1
+                                #print("x %d y %d r %d g %d b %d" % (x,y,r,g,b))
+                                if PimUnicorn:
+                                    unicorn.set_pixel(x-1, y-1, r, g, b)
+                                if PimMote:
+                                    mote.set_pixel(y, x-1, r, g, b)
+                
+                                x += 1
+                                if (x > x_max):
+                                    x = 1
+                                    y += 1
+                
+                            if (OPC.pixelCount >= OPC.pixelLimit):
+                                if PimUnicorn:
+                                    unicorn.show()
+                                if PimMote:
+                                    mote.show()
+                        else:
+                            i += copyBytes
+                            
+                if (OPC.pixelCount == OPC.pktLength):
+                    OPC.parseState = 0
+                else:
+                    OPC.parseState += 1
+                            
             elif (OPC.parseState == 5):
                 discardBytes = min(OPC.pktLength - OPC.pixelLimit, len(rawbytes) - i)
                 print("discardBytes %d" % (discardBytes))
